@@ -20,7 +20,7 @@ pnpm dev
 - Health/configuration status: http://127.0.0.1:3000/api/health
 - Database/Auth/private-bucket readiness: http://127.0.0.1:3000/api/ready
 
-Live preview: [landing page](https://stitchproof-g18oecwzx-bennettch1213-1215s-projects.vercel.app) · [read-only walkthrough](https://stitchproof-g18oecwzx-bennettch1213-1215s-projects.vercel.app/demo/story). It is hosted on Vercel and built from the public [GitHub repository](https://github.com/bennettc1213/stitchproof). No hosted Supabase project or production secrets are configured: the landing pages and synthetic, read-only demo work, but login/signup, persisted shop data, private storage, email delivery, and billing are not operational. Do not use this preview with real customer data or treat it as a production release.
+Live preview: [landing page](https://stitchproof-five.vercel.app) · [read-only walkthrough](https://stitchproof-five.vercel.app/demo/story). It is hosted on Vercel and built from the public [GitHub repository](https://github.com/bennettc1213/stitchproof). No hosted Supabase project or production secrets are configured: the landing pages and synthetic, read-only demo work, but login/signup, persisted shop data, private storage, email delivery, and billing are not operational. Do not use this preview with real customer data or treat it as a production release.
 
 For local development, the server binds to `127.0.0.1` only. Use that exact IPv4 address: this machine also has Quote Desk on IPv6 port 3000, so `localhost` may open the other app. Local auth redirects and checks use the explicit StitchProof address. Keep the terminal open, or use your IDE's persistent terminal. If port 3000 is occupied on IPv4, inspect the process rather than starting duplicate servers.
 
