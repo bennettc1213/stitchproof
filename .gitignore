@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.pnpm-store/
+.env*
+!.env.example
+playwright-report/
+test-results/
+*.tsbuildinfo
+.supabase/
+supabase/.temp/
+.local/

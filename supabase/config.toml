@@ -1,0 +1,40 @@
+project_id = "threadproof"
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 500
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+[db.seed]
+enabled = false
+[studio]
+enabled = true
+port = 54323
+# Optional log collection requires a Docker TCP endpoint on Windows. Core app data
+# and history do not depend on it; leave that endpoint closed.
+[analytics]
+enabled = false
+[local_smtp]
+enabled = true
+port = 54324
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["http://127.0.0.1:3000/auth/callback", 'http://127.0.0.1:3000/auth/callback\?next=**', "http://127.0.0.1:3000/reset-password"]
+enable_signup = true
+minimum_password_length = 12
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+double_confirm_changes = true
+# Local mail-catcher checks exercise signup, recovery, and invitation signup.
+# These are development limits, not production Auth settings.
+[auth.rate_limit]
+email_sent = 100

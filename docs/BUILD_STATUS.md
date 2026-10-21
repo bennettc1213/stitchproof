@@ -1,0 +1,88 @@
+# StitchProof build status
+
+Updated October 21, 2026. This is a development checkpoint, not a production release.
+
+## Current connected checkpoint
+
+- Docker Desktop 4.95.0, WSL 2.7.13, and local Supabase now work after the founder's restart. Database, Auth, private Storage, Studio, and the local mail catcher have passed readiness checks. All thirteen migrations applied; normal stack stop/start preserved data. Optional analytics is disabled to avoid requiring a Docker TCP endpoint on Windows.
+- **Passed the real 24-polo browser journey:** create, receive 23/24, condition/proof uploads, blocked unreconciled request, corrected receipt with history, v1 changes, v2 approval, production, completed counts, named collection, reload, and PDF download.
+- **Passed connected API checks:** independent competing decisions, tenant isolation, removed-member access, private file hashes, PDFs/exports, expired-trial rules, valid existing decisions, failed-input preservation, and forged checkout returns.
+- **Passed actual local Auth/mail checks:** signup/verification, empty/idempotent onboarding, logout, recovery, invitation signup preserving its destination, intended-email acceptance, owner controls, and immediate removed-staff file denial.
+- **Passed parallel local email worker checks:** real files, accurate development-outbox states, unauthorized invocation denial, and private-payload purging. No real provider email was sent.
+- **Passed real Storage cleanup and quota checks:** abandoned reservations release quota once, authenticated parallel workers remove orphan files, late uploads are rechecked, concurrent reservations cannot exceed quota, and sent historical files remain intact.
+- Added Stripe SDK 23.0.0 / API 2026-09-30.endive: owner-only hosted Checkout/Portal, fixed-price/mode validation, raw signed webhooks, customer association, operation/reconciliation leases, session recovery, idempotency/event deduplication, current-provider reconciliation, paid-through/cancellation, and persisted three-day grace. **Actual Stripe test credentials and provider checkout/webhooks remain missing/unverified.** No provider price, session, subscription, or live charge was created.
+- Added safe local configuration and /api/ready probes. Fixed form labels, failed-input preservation, shorter-screen logout access, and direct order/PDF lookup beyond the list's 200-record cap.
+- Added editable customer contact details and private notes, literal case-insensitive search across name/company/email/phone, 24-record directory pages, and independently paged customer order history. Connected checks cover 206 customers and 205 orders, direct older records, owner/staff edit races, duplicate email and stale-input errors, tenant isolation, read-only access, and preservation of sent proofs/queued recipients. Pending edits keep their expected revision through history navigation.
+- Added member assignment, reasoned/confirmed pre-production cancellation, terminal-order archiving/restoration, and current/archived list views. Connected API/browser checks cover active/former member handling, approval preservation, conflicting edits, pending public link/file revocation, separate cancellation/production and assignment/removal races, desktop/mobile restoration, and retained private records. Cancellation after production begins and archiving active work are rejected.
+- Added shop logos: owner upload/replace/remove with confirmation, optional logo at onboarding, content/type/extension validation (PNG/JPEG/WebP, 5 MiB, at least 32 px; SVG/PDF rejected), metadata-free PNG re-encoding within 1024 px, a separate private 1 MiB PNG-only bucket, and display in the workspace sidebar, Shop profile, customer review pages (active links only), order sheets, approval-record PDFs, and the owner export manifest. Staff can see it; expired shops cannot change it.
+- Removed the main order list's 200-record cap with database-backed literal search, status/staff/archive filters, stable sorting, 24-record pages, whole-view counts, and URL state/detail return links. Unit checks cover current-proof/policy/expiry status, per-size discrepancies, null-last sorting, and scope/permission rules. Connected browser acceptance is recorded below.
+- Standardized StitchProof local origins on explicit IPv4 (127.0.0.1:3000), including Auth redirects and test tools, after finding another project on IPv6 localhost:3000. Do not stop that other project's server. Supabase was restarted with data backup preserved to load the corrected local Auth config.
+- Local demo: http://127.0.0.1:3000/demo. Real development login: http://127.0.0.1:3000/login. Generated credentials are in ignored .local/seed-credentials.json; keys are in ignored .env.local. No public deployment/tunnel exists.
+
+## Three-phase schedule
+
+The target is under 48 hours of elapsed project time. These are estimates, not a promise of unattended work or service availability. Every work-session handoff includes the running local review URL and phase status.
+
+| Phase                                       | Target budget | Deliverable                                                                                           | Current position                                                                            |
+| ------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 1 — Foundation and intake                   | Hours 0–12    | Next.js app, authentication integration, shop onboarding, tenant isolation, customers, orders, intake | Connected Auth/intake/persistence and isolation checks passed                               |
+| 2 — Approval through pickup                 | Hours 12–30   | Private uploads, immutable proof bundles, customer decisions, production, pickup, PDFs/QR, exports    | Full browser journey and connected checks passed; broader operational/content checks remain |
+| 3 — Commercial operation and release checks | Hours 30–44   | Staff invitations, Stripe, email worker, operational finish, regression/security checks               | Team/local email passed; Stripe code included, provider verification and launch gaps remain |
+
+Reserve hours 44–48 for fixes and founder review. The deadline depends on a working database environment and test-provider credentials. Do not mark a phase accepted until its connected checks pass.
+
+## Implemented
+
+- Founder-requested UI makeover: cobalt/charcoal palette, larger typography and spacing, redesigned marketing/pricing, animated portal preview, mobile order cards, and keyboard-operated order tabs. See [UI makeover notes](UI_MAKEOVER.md).
+
+- Responsive landing/pricing, draft privacy/terms, quick-start guide.
+- Visibly labeled public read-only Cedar Stitch Demo: seven fictional orders, search, status filters, customer records, order details, proof preview, customer view, and seven-scene walkthrough.
+- Cookie-based Supabase SSR integration, session refresh proxy, signup/login/recovery/logout, verification callback, idempotent shop onboarding. Unconfigured auth displays an actionable setup message.
+- SQL schema, tenant SELECT policies, server-controlled transactional mutations, owner role restrictions, private bucket, composite cross-workspace foreign keys.
+- Customers reused by matching normalized email, unique transactional order numbering and creation idempotency keys.
+- Garment groups/custom sizes, integer counts, discrepancy rules, reasoned history, optimistic concurrency, decoration instructions, private internal notes.
+- Validated image/PDF uploads, byte sniffing, image decoding/metadata removal, SHA-256 digests, locked quota reservations, private same-origin downloads.
+- Immutable numbered sent proof snapshots, one actionable request, 256-bit tokens stored as SHA-256 digests, seven-day expiry, revoke/replacement, limited public bundle, shared database review rate counters.
+- Typed-name approvals with two separate unchecked confirmations, written change requests, decision idempotency and row locking.
+- Approval invalidation on intake/spec/policy changes; internal notes preserve approval; production snapshots and locked specification; per-group completion/exception accounting; named whole-order collection.
+- Server-generated Unicode PDF order sheets with authenticated-order QR codes, proof-decision record PDFs, owner JSON export with authenticated attachment manifest.
+- Local-only guarded development seed with two isolated shops; no universal production credentials and no outgoing emails.
+
+## Current verification
+
+- **pnpm test:access-security** passed connected invitation capacity (three independent competing creations for two seats), duplicate acceptance, wrong-account/replaced/expired/revoked/removed reuse, three acceptance/revocation races, competing cross-shop acceptance, onboarding/acceptance race, and read-only shop denial with retained revocation. Public browser/file checks cover sent-bundle-only scope, private-note exclusion, stale actions after replacement/expiry/revocation, retained error input, parallel retries, immutable receipts, one decision/notification and expired-receipt denial preserving shop records. Report: `.local/access-security-check.json`. No application defect was found in these checks; the repeatable acceptance suite closes two previously unverified launch items.
+
+- Added server-only shared authentication limits with HMAC email digests, bounded cleanup, identity/action and global fixed windows, fail-closed handling, local secret generation, and readiness checks. Connected parallel calls allow exactly ten login attempts; browser checks verify normalized identity throttling, reload persistence/input retention, signup and recovery denial. Provider limits remain required for direct Auth API requests.
+- **pnpm test:auth-security** passed forced expiry of correctly signed local ES256 access tokens, confirmed Auth rejection specifically for expiry, SSR/proxy and private Route Handler refresh, concurrent refresh requests, invalid refresh and tampered-token denial. Safe report: `.local/auth-security-check.json`; no session or signing material is stored in it.
+- After adding authentication limits, reran actual signup/verification/recovery/invitation checks and all 16 desktop/mobile browser tests successfully. TypeScript, clean lint and production compilation passed with local email disabled for compilation; the exact-value client asset scan passed for service-role, worker and authentication-limit secrets. Readiness reports all four checks healthy.
+
+- **66 tests across twelve files** passed: authentication limit policy/permissions/windows/cleanup/global ceilings, shop logo validation/re-encoding, PDF embedding, logo permissions/path ownership/review-link scope, PostgreSQL domain/RLS, uploads/PDFs, invitation capacity/lifecycle/removal, outbox leases/backoff/cancellation/purging, billing authorization/leases/generations/deduplication/grace/expiry/recovery/cancellation/pricing/mode/signatures, customer search/pagination/editing/permissions/conflicts, order controls, and full order-directory paging/filtering/status/sorting/isolation/URL validation.
+- **16 Playwright desktop/mobile tests** passed with Supabase configured, including customer demo search, tour, keyboard tabs, reduced motion, invitation entry, responsive layouts, and accessibility.
+- **pnpm test:connected** passed real Supabase API and browser-route checks, including concurrent decisions, isolation, storage/PDF/export round trips, expiry, retained failed input, and forged checkout returns.
+- **pnpm test:workflow** passed the complete browser-driven order story; desktop/mobile screenshots are in ignored .local/qa/.
+- **pnpm test:auth** passed actual local signup/mail/recovery and invitation signup/acceptance/removal.
+- **pnpm test:email** passed parallel authenticated workers, local files, safe states, and private-payload cleanup.
+- **pnpm test:files** passed actual Storage cleanup, concurrent quota reservations, late orphan recovery, and sent-proof preservation.
+- **pnpm test:customers** passed actual Supabase/customer browser editing, search, paging beyond 200, conflicting/duplicate writes, retained input, isolation, read-only access, and preserved proof/queued recipient records.
+- **pnpm test:controls** passed actual owner/staff assignment, cancellation/review-link revocation, archive/restore, preserved records, independent cancellation/production and assignment/removal races, and mobile restoration.
+- **pnpm test:orders** passed actual Supabase/browser acceptance with 600 current and 205 archived orders: complete disjoint pages, literal searches, null-last sorting, whole-view counts, combined filters, saved/reloaded/shared/back/forward URLs, detail return links, mobile paging, former-member history filters, isolation, and expired-shop reads.
+- **pnpm test:logo** passed 12 actual Supabase Storage/browser checks: disguised-SVG rejection before storage, private storage and non-public bucket, settings/sidebar display, ETag revalidation, logo in order-sheet and approval PDFs, token-bound customer review display with anonymous/foreign-shop denial, staff read-only, replacement and removal deleting displaced objects, expired-shop rejection with staged-object cleanup, mobile layout, and onboarding upload. test:workflow, test:connected, and all 16 Playwright tests were rerun and passed after this change.
+- Signup/recovery/invitation checks and desktop/mobile demo tests were rerun successfully against the explicit IPv4 origin after updating local Auth redirects; requests using localhost had reached the unrelated IPv6 app.
+- Reports: .local/connected-check.json, .local/ui-workflow-check.json, .local/auth-check.json, .local/email-check.json, .local/cleanup-check.json, .local/customers-check.json, .local/order-controls-check.json, .local/order-directory-check.json, and .local/shop-logo-check.json.
+- PGlite tests remain isolated SQL checks with auth stubs and do not replace the separate real Supabase evidence above. Billing fixtures and SDK signature checks do not verify actual Stripe checkout.
+- /api/ready reports healthy database, Auth, private bucket, and authentication-limit configuration/table access. /api/health reports configuration only. Neither proves provider billing/email or backups.
+- TypeScript, lint, and production compilation passed. Compilation used EMAIL_TRANSPORT=unconfigured; production fixture guards remain enabled.
+- The compiled client assets contain none of the configured service-role, worker, or authentication-limit secrets. This exact-value check supplements server-only module boundaries; it does not replace a security review.
+
+## Remaining release work
+
+1. Configure actual Stripe test credentials, the exact price/Portal, and CLI webhook forwarding. Verify Checkout/Portal, repeated attempts, event redelivery/out-of-order reconciliation, immediate payment, cancellation, and payment failure/recovery against Stripe.
+2. Configure a Resend test sender and production scheduler; verify actual provider acceptance/failure and crash/lease recovery. Choose provider retention. Delivered webhooks are not implemented; the app reports provider acceptance.
+3. Rehearse provider/network failures during cleanup; concurrent quota limits and historical-file preservation passed against actual Storage. Add artwork embedding/content review to approval PDFs. Current PDFs list file names/digests and fonts do not cover every writing system.
+4. Finish real-form mobile/keyboard/error/long-name checks, reviewed legal/operator/contact/retention details, backups/restore rehearsal, and an owner-authorized closure maintenance tool. Verify HTTPS session/cookie behavior in staging; local forced-expiry checks now pass.
+
+## Next resumption point
+
+Preserve user edits and the populated local database. Reuse a running server; if starting Next, keep logs outside the watched project. Start Docker/Supabase if stopped, apply pending migrations with supabase migration up --local, and use pnpm db:configure only when local keys need refreshing. Do not use a routine reset. Scope ALLOW_DEV_SEED=true to explicit local seed/check processes. Disable local email for production compilation. Continue provider verification when credentials are available and finish the operational gaps above. The backend remains Supabase; PGlite is a test dependency only.
+
+Local demo: http://127.0.0.1:3000/demo. Real development login: http://127.0.0.1:3000/login. No deployment or public tunnel exists.

@@ -1,0 +1,2 @@
+# Local acceptance tooling only; not an application/runtime dependency.
+PyMuPDF==1.26.7
