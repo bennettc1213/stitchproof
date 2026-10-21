@@ -7,5 +7,6 @@ playwright-report/
 test-results/
 *.tsbuildinfo
 .supabase/
+supabase/.branches/
 supabase/.temp/
 .local/
