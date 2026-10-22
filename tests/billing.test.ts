@@ -306,6 +306,7 @@ test('subscription snapshots require the workspace, plan, and paid invoice; brow
     livemode: false,
     metadata: { workspace_id: 'workspace' },
     cancel_at_period_end: false,
+    cancel_at: null,
     ended_at: null,
     items: {
       data: [{ price, quantity: 1, current_period_end: Math.floor(Date.now() / 1000) + 86400 }],
@@ -326,6 +327,15 @@ test('subscription snapshots require the workspace, plan, and paid invoice; brow
       false,
     ).paid,
   ).toBeNull();
+  expect(billingSnapshot(sub, 'workspace', 'price_shop', false).cancel).toBe(false);
+  expect(
+    billingSnapshot(
+      { ...sub, cancel_at: sub.items.data[0].current_period_end },
+      'workspace',
+      'price_shop',
+      false,
+    ).cancel,
+  ).toBe(true);
   expect(() => billingSnapshot(sub, 'different', 'price_shop', false)).toThrow('workspace');
   expect(() => billingSnapshot(sub, 'workspace', 'price_other', false)).toThrow('plan');
   expect(billingSnapshot(null, 'workspace', 'price_shop', false).paid).toBeNull();

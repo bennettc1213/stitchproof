@@ -93,7 +93,8 @@ export function billingSnapshot(
     status: subscription.status,
     paid: paid ? iso(item.current_period_end) : null,
     failure: iso(failure),
-    cancel: subscription.cancel_at_period_end,
+    // The Customer Portal schedules period-end cancellation through cancel_at on current API versions.
+    cancel: subscription.cancel_at_period_end || subscription.cancel_at !== null,
     ended: iso(subscription.ended_at),
   };
 }

@@ -29,9 +29,21 @@ async function checked<T>(request: PromiseLike<{ data: T; error: { message: stri
 export async function reconcileBilling(customer: string, eventId: string, event?: Stripe.Event) {
   const { config, stripe } = provider();
   const service = admin();
-  const lease = await checked(
-    service.rpc('claim_billing_sync', { p_customer: customer, p_event: eventId }),
-  );
+  // Stripe sends several events for one checkout within a second. Wait briefly for a concurrent
+  // reconciliation instead of failing; a 503 would delay entitlement until Stripe's next retry.
+  let lease;
+  for (let attempt = 0; ; attempt++) {
+    const { data, error } = await service.rpc('claim_billing_sync', {
+      p_customer: customer,
+      p_event: eventId,
+    });
+    if (!error) {
+      lease = data;
+      break;
+    }
+    if (attempt >= 15 || !error.message.includes('already running')) throw new Error(error.message);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
   if (lease.untracked || lease.duplicate) return;
   try {
     const subscriptions = await stripe.subscriptions.list({
@@ -173,6 +185,8 @@ export async function checkout() {
         line_items: [{ price: config.price, quantity: 1 }],
         allowed_payment_method_types: ['card'],
         allow_promotion_codes: false,
+        // Founder decision (October 21, 2026): Stripe is not merchant of record for now.
+        managed_payments: { enabled: false },
         subscription_data: { metadata: { workspace_id: shop.id } },
         metadata: { workspace_id: shop.id },
         expires_at: Math.floor(new Date(reservation.expires_at).getTime() / 1000),

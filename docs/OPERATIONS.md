@@ -40,9 +40,9 @@ Review/invitation bearer tokens are stored temporarily only in server-only queue
 
 SQL/template tests and `pnpm test:email` pass against real local Supabase, including parallel authenticated workers, local files, safe states, and payload cleanup. Crash/lease failure recovery has SQL coverage; actual provider acceptance, provider failure handling, and production sender/scheduler setup remain unverified. Local Auth signup/recovery emails have separately passed through the mail catcher.
 
-## Stripe billing — provider verification pending
+## Stripe billing — test mode verified
 
-The code uses Stripe SDK 23.0.0 with API `2026-09-30.endive`, hosted Checkout and Customer Portal, and `/api/stripe/webhook`. No provider credentials, Stripe account, price, Checkout/Portal session, or live charge have been created by this build. The UI accurately shows unconfigured until all required values are set. The seven-day no-card trial remains application-managed; no Stripe trial is created.
+The code uses Stripe SDK 23.0.0 with API `2026-09-30.endive`, hosted Checkout and Customer Portal, and `/api/stripe/webhook`. Test-mode verification passed on October 21, 2026 (`pnpm test:stripe`). No live object or charge has been created. On this API version, the Portal schedules period-end cancellation through `cancel_at` and leaves `cancel_at_period_end` false; reconciliation treats either as scheduled. Concurrent webhooks for the same customer wait briefly for the reconciliation lease instead of returning 503, so a burst of checkout events does not defer entitlement to Stripe's next retry. The UI accurately shows unconfigured until all required values are set. The seven-day no-card trial remains application-managed; no Stripe trial is created.
 
 Configure test `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, and `STRIPE_PORTAL_CONFIGURATION_ID`; use `STRIPE_MODE=test`. The price must be $39 USD, recurring every month, quantity one/licensed, without a provider trial or quantity transformation. Card payments must be enabled. Configure the Portal to cancel at period end and disable plan switching. The app validates these provider objects server-side. Production live mode additionally requires `STRIPE_ALLOW_LIVE=true`; local processes reject live keys.
 

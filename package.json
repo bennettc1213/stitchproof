@@ -28,6 +28,7 @@
     "test:auth-security": "node --env-file=.env.local scripts/check-auth-security.mjs",
     "test:access-security": "node --env-file=.env.local scripts/check-access-security.mjs",
     "test:pdf": "node --env-file=.env.local scripts/check-pdf-content.mjs",
+    "test:stripe": "node --env-file=.env.local scripts/check-stripe.mjs",
     "email:work": "node --env-file=.env.local scripts/process-outbox.mjs",
     "files:clean": "node --env-file=.env.local scripts/clean-files.mjs"
   },

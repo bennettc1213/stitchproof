@@ -37,12 +37,13 @@ Unchecked items are unfinished or unverified. Do not treat the running demo as r
 - [x] Active member assignment, reasoned/confirmed draft/open cancellation, pending review-link/file revocation, and completed/cancelled archive/restore verified, including independent races and mobile restoration.
 - [x] Main order-directory connected browser acceptance finished with 600 current and 205 archived records: database search/paging, status/staff/archive filters, stable sorting, saved/shared views, detail return links, and mobile.
 - [x] Shop logo upload/removal, private display and PDF branding connected-tested.
-- [ ] Stripe test price, hosted Checkout/Portal, signature checks, duplicate/out-of-order events, cancellation and grace/recovery verified.
-- [ ] No checkout success-URL entitlement bypass; owner-only billing enforced.
+- [x] Stripe test price, hosted Checkout/Portal, signature checks, duplicate/out-of-order events, cancellation and grace/recovery verified (`pnpm test:stripe`).
+- [x] No checkout success-URL entitlement bypass; owner-only billing enforced.
 - [x] Parallel authenticated email workers verified against real Supabase/local files, with safe status and private-payload purging.
-- [ ] Actual email provider acceptance/failure and crash recovery; production sender/scheduler configured.
+- [x] Actual email provider acceptance, refusal/retry, and crash/lease recovery without duplicates verified against Resend test mode.
+- [ ] Production sender domain verified and production outbox scheduler configured.
 - [x] Expired-trial UI/API behavior verified, including existing sent decisions, reads/exports, failed-input retention, and forged checkout-return denial.
-- [ ] Stripe-driven paid/grace expiry and recovery verified against actual test provider events (SQL tests pass).
+- [x] Stripe-driven paid/grace expiry and recovery verified against actual test provider events (test clock renewal failure, retry, recovery, termination).
 
 ## Production configuration and founder decisions
 
