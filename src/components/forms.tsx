@@ -1,6 +1,7 @@
 'use client';
 import { useActionState, useId, useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { unstable_rethrow } from 'next/navigation';
 import { Check, Clipboard, LoaderCircle } from 'lucide-react';
 import { perform, decide, type ActionState } from '@/app/actions';
 import type { Garment, Order } from '@/lib/domain';
@@ -60,7 +61,20 @@ export function ActionForm({
 }) {
   const [editedRevision, setEditedRevision] = useState<number | undefined>();
   const [state, action] = useActionState<ActionState, FormData>(async (previous, form) => {
-    const result = await (publicReview ? decide : perform)(previous, form);
+    let result: ActionState;
+    try {
+      result = await (publicReview ? decide : perform)(previous, form);
+    } catch (error) {
+      // A lost connection would otherwise replace the page and discard the user's input.
+      unstable_rethrow(error);
+      return {
+        ...previous,
+        success: undefined,
+        link: undefined,
+        error:
+          'Could not reach StitchProof, so nothing was saved. Check your connection and try again; your entries are still here.',
+      };
+    }
     if (captureRevisionOnEdit && !result.error) setEditedRevision(undefined);
     return result;
   }, {});

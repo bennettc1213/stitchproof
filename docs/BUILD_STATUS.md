@@ -50,6 +50,13 @@ Reserve hours 44–48 for fixes and founder review. The deadline depends on a wo
 
 ## Current verification
 
+- **pnpm test:forms passed with 0 findings (October 22, 2026)** at desktop and iPhone 13 sizes on the real signed-in app and the customer review page. It covers axe (WCAG 2.1 AA, serious/critical), page overflow with maximum-length unbroken names, 24px touch targets, 16px field text (iOS focus zoom), new-order Tab order, empty states, server-rejected input, and saves while offline. The sweep found and fixed four defects:
+  - A save attempted while offline replaced the page with the error screen and discarded all input. `ActionForm` now catches transport failures, rethrows Next.js navigation errors, and shows a retry message while keeping the entries.
+  - Unbroken names widened the order and customer pages by 2,600–4,000px. Long words in `main` now wrap.
+  - Search, filter, and garment-count fields used 13px text, which makes iOS zoom on focus. They are 16px on phones, and the whole orders search box is now a tap target.
+  - The Shop settings link and "+ Add size" were under 24px tall.
+  TypeScript, lint, 70 unit tests, 16 Playwright tests, `test:workflow`, `test:orders`, and `test:customers` passed afterwards.
+
 - **pnpm test:pdf passed (October 22, 2026)**, now including the order-sheet QR: decoded from a 3x render, it resolves to exactly this order's `/app/orders/[id]`. A signed-out browser opening it lands on sign-in, and another shop cannot see the order. Existing checks cover embedded/rotated artwork, private-note exclusion, decision records, access denial, export round trip, and damaged-original handling.
 
 - **pnpm test:stripe passed 13 checks against Stripe test mode (October 21, 2026)** using hosted Checkout/Portal in a browser and Stripe CLI forwarding: staff denial and forged returns, repeated attempts reusing one session, a declined card, activation with one month paid, every concurrent checkout event processed, deduplicated redelivery, a stale out-of-order payload, signature/live-mode rejection, owner Portal cancellation at period end, termination capping access, and (on a test clock) failed renewal → `past_due` with a three-day grace, a retry not extending grace, and recovery. All 19 CLI deliveries returned 2xx. The run found and fixed three defects: Checkout failed outright because the account defaults to Managed Payments (now disabled per founder decision); concurrent webhooks returned 503 and deferred entitlement until Stripe retried (now waits for the lease); and Portal cancellations were not shown, because this API version sets `cancel_at` rather than `cancel_at_period_end` (both are now handled, with a unit test). TypeScript, lint, 70 unit tests, and `test:connected` passed afterwards.
@@ -85,7 +92,7 @@ Reserve hours 44–48 for fixes and founder review. The deadline depends on a wo
 1. Stripe test mode passed (see Current verification). Remaining: production webhook endpoint/secret on the deployed URL, and a separately authorized live-mode setup.
 2. Configure a verified production sender domain and production scheduler. Choose provider retention. (Test-mode provider acceptance, refusal/retry, and crash/lease recovery passed October 21, 2026.) Delivered webhooks are not implemented; the app reports provider acceptance.
 3. Rehearse provider/network failures during cleanup; concurrent quota limits and historical-file preservation passed against actual Storage. Approval PDFs embed the sent artwork (`pnpm test:pdf`); fonts still do not cover every writing system.
-4. Finish real-form mobile/keyboard/error/long-name checks, reviewed legal/operator/contact/retention details, backups/restore rehearsal, and an owner-authorized closure maintenance tool. Verify HTTPS session/cookie behavior in staging; local forced-expiry checks now pass.
+4. Real-form mobile/keyboard/error/long-name checks passed (`pnpm test:forms`). Remaining: reviewed legal/operator/contact/retention details, backups/restore rehearsal, and an owner-authorized closure maintenance tool. Verify HTTPS session/cookie behavior in staging; local forced-expiry checks now pass.
 
 ## Next resumption point
 

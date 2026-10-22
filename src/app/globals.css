@@ -84,6 +84,10 @@ h4,
 p {
   margin-top: 0;
 }
+/* Long customer names, emails, and titles without spaces must wrap instead of widening the page. */
+main {
+  overflow-wrap: anywhere;
+}
 h1,
 h2,
 h3,
@@ -209,6 +213,7 @@ svg {
 .text-link {
   display: inline-flex;
   align-items: center;
+  min-height: 28px;
   gap: 8px;
   border: 0;
   padding: 0;
@@ -641,6 +646,7 @@ svg {
   gap: 8px;
   padding-left: 22px;
   border-left: 1px solid var(--line);
+  min-height: 32px;
   font-size: 13px;
   font-weight: 550;
   color: #475daa;
@@ -4585,8 +4591,13 @@ svg {
     padding: 10px 11px;
     gap: 9px;
   }
-  .search-field input {
-    font-size: 13px;
+  /* 16px keeps iOS from zooming the page when a field is focused. */
+  .search-field input,
+  main input:not([type='checkbox']):not([type='radio']),
+  main select,
+  main textarea,
+  .order-filter select {
+    font-size: 16px;
   }
   .search-field kbd {
     display: none;

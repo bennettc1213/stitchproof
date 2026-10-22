@@ -215,8 +215,8 @@ export function OrderList({
         >
           <input type="hidden" name="status" value={tab} />
           {archived && <input type="hidden" name="view" value="archived" />}
-          <div className="search-field">
-            <Search size={17} />
+          <label className="search-field">
+            <Search size={17} aria-hidden="true" />
             <input
               ref={searchRef}
               name="q"
@@ -226,8 +226,8 @@ export function OrderList({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <kbd>/</kbd>
-          </div>
+            <kbd aria-hidden="true">/</kbd>
+          </label>
           {directory ? (
             <>
               <label className="order-filter">
