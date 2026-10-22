@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { chromium } from '@playwright/test';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
+import jsQR from 'jsqr';
+import sharp from 'sharp';
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
@@ -193,7 +195,7 @@ try {
     anonymous = await browser.newContext();
   const route = app + '/api/orders/' + id + '/pdf',
     proofRoute = route + '?proof=' + proofId;
-  async function inspect(context, target, name, render = false) {
+  async function inspect(context, target, name, render = false, scale = 1) {
     const response = await context.request.get(target);
     assert.equal(response.status(), 200);
     assert.equal(response.headers()['content-type'], 'application/pdf');
@@ -203,7 +205,11 @@ try {
     const result = JSON.parse(
       execFileSync(
         'python',
-        ['scripts/inspect-pdf.py', destination, ...(render ? ['.local/pdf-content/preview'] : [])],
+        [
+          'scripts/inspect-pdf.py',
+          destination,
+          ...(render ? ['.local/pdf-content/' + render, String(scale)] : []),
+        ],
         { env: pythonEnv, encoding: 'utf8', windowsHide: true },
       ),
     );
@@ -215,7 +221,7 @@ try {
     assert.ok(result.pages.every((page) => page.links === 0));
     return { ...result, text };
   }
-  const pending = await inspect(ownerContext, proofRoute, 'pending', true);
+  const pending = await inspect(ownerContext, proofRoute, 'pending', 'preview');
   assert.ok(pending.text.includes('Awaiting approval'));
   assert.ok(!pending.text.includes('Typed name:'));
   assert.equal(pending.pages.length, 6);
@@ -297,11 +303,35 @@ try {
   const changed = await inspect(ownerContext, route + '?proof=' + changeProof, 'changes');
   assert.ok(changed.text.includes('Please move the design higher.'));
   assert.ok(!changed.text.includes('I approve the displayed design'));
-  const sheet = await inspect(ownerContext, route, 'order-sheet');
+  const sheet = await inspect(ownerContext, route, 'order-sheet', 'sheet-preview', 3);
   assert.ok(sheet.text.includes('NEW_UNAPPROVED_TEXT'));
   assert.ok(sheet.pages.some((page) => page.images > 0));
+  // Decode the printed QR from the rendered pages, as a phone camera would.
+  const decoded = [];
+  for (const index of sheet.pages.keys()) {
+    const { data, info } = await sharp(`.local/pdf-content/sheet-preview/page-${index + 1}.png`)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const code = jsQR(new Uint8ClampedArray(data), info.width, info.height);
+    if (code) decoded.push(code.data);
+  }
+  const orderPage = app + '/app/orders/' + id;
+  assert.deepEqual(decoded, [orderPage], 'The order sheet must carry one QR code for this order.');
+  // A signed-out scan opens the order route and is sent to sign-in.
+  const scan = await anonymous.newPage();
+  await scan.goto(orderPage);
+  await scan.waitForURL(/\/login/);
+  assert.ok(!(await scan.content()).includes('NEW_UNAPPROVED_TEXT'));
+  await scan.close();
+  const ownerScan = await ownerContext.request.get(orderPage);
+  assert.equal(ownerScan.status(), 200);
+  assert.ok((await ownerScan.text()).includes('NEW_UNAPPROVED_TEXT'));
+  assert.ok(
+    !(await (await otherContext.request.get(orderPage)).text()).includes('NEW_UNAPPROVED_TEXT'),
+  );
   record(
-    'Change-request records retain comments without approval confirmations; order sheets retain current instructions and QR artwork.',
+    'Change-request records retain comments without approval confirmations; order sheets retain current instructions, and the printed QR decodes to this order, which requires sign-in and is hidden from other shops.',
   );
   assert.equal((await anonymous.request.get(proofRoute)).status(), 401);
   assert.equal((await anonymous.request.get(proofRoute + '&token=' + secret)).status(), 401);
@@ -357,7 +387,7 @@ try {
         checked_at: new Date().toISOString(),
         checks,
         limitations:
-          'Static PDF page content and saved form appearances only; annotations/interactive features excluded. Images fit within 2400 × 3000 pixels. 40 MiB/100 artwork-page export cap. QR bitmap is present; decoding its destination is a separate check. Synthetic fixtures only; no credentials/tokens in report.',
+          'Static PDF page content and saved form appearances only; annotations/interactive features excluded. Images fit within 2400 × 3000 pixels. 40 MiB/100 artwork-page export cap. The order-sheet QR is decoded from a 3x render. Synthetic fixtures only; no credentials/tokens in report.',
       },
       null,
       2,

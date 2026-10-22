@@ -26,7 +26,7 @@ Unchecked items are unfinished or unverified. Do not treat the running demo as r
 - [x] Revocation, expiry, replacement, public file scope and read-only same-link receipts verified through real endpoints/browser actions, including stale forms and concurrent decisions.
 - [x] Parallel cross-order quota reservations, expired/failed reservation cleanup, late orphan rechecks, and sent-file preservation verified against Storage.
 - [ ] Provider/network interruption rehearsal and production file-maintenance scheduler configured.
-- [ ] Real PDF content, no internal-note leakage, QR target, complete export and attachment round trip verified.
+- [x] Real PDF content, no internal-note leakage, QR target, complete export and attachment round trip verified (`pnpm test:pdf`).
 - [ ] Full mobile keyboard/touch/empty/error/long-name/failed-save checks on real forms, not only demo.
 
 ## Commercial operation

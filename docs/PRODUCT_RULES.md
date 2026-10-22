@@ -75,7 +75,7 @@ Proofs accept JPEG/PNG/WebP/PDF; condition evidence accepts images. Initial limi
 
 Quota reservations atomically update workspace usage before upload. Known failures release the reservation once. Reservations expire after one hour and cannot be finalized afterward. The authenticated maintenance worker retires expired reservations, releases quota, and leases deletion of abandoned objects. It excludes every ready file and any sent-proof reference, and rechecks cleaned tombstones daily for late orphan writes. Parallel real Storage/quota checks passed. Production must schedule this worker; no scheduler is provisioned. Sent/approved proof blobs are never overwritten or deleted as routine cleanup.
 
-Order sheet QR codes point to authenticated `/app/orders/[id]`, with no approval token. Customer-facing PDFs exclude internal notes. Approval-record PDFs label pending/change-requested decisions accurately and list file digests; artwork embedding remains a release task. Owner JSON export includes personal/internal records and an authenticated attachment manifest, not the binary file contents. Download paths always recheck current membership.
+Order sheet QR codes point to authenticated `/app/orders/[id]`, with no approval token. Customer-facing PDFs exclude internal notes. Approval-record PDFs label pending/change-requested decisions accurately and list file digests and embed the sent artwork. Owner JSON export includes personal/internal records and an authenticated attachment manifest, not the binary file contents. Download paths always recheck current membership.
 
 ## Entitlements
 

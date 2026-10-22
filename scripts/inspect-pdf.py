@@ -5,6 +5,7 @@ from pathlib import Path
 import pymupdf
 
 document = pymupdf.open(sys.argv[1])
+scale = float(sys.argv[3]) if len(sys.argv) > 3 else 1
 pages = []
 for index, page in enumerate(document):
     pages.append({"text": page.get_text(), "links": len(page.get_links()),
@@ -13,5 +14,5 @@ for index, page in enumerate(document):
     if len(sys.argv) > 2:
         output = Path(sys.argv[2])
         output.mkdir(parents=True, exist_ok=True)
-        page.get_pixmap(matrix=pymupdf.Matrix(1, 1)).save(output / f"page-{index + 1}.png")
+        page.get_pixmap(matrix=pymupdf.Matrix(scale, scale)).save(output / f"page-{index + 1}.png")
 print(json.dumps({"pages": pages, "attachments": document.embfile_count()}, ensure_ascii=True))
