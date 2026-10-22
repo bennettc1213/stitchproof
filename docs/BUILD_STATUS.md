@@ -50,6 +50,15 @@ Reserve hours 44–48 for fixes and founder review. The deadline depends on a wo
 
 ## Current verification
 
+- **pnpm test:production passed (October 22, 2026)** against a real production build:
+  - None of 9 configured secrets (service role, worker, auth-limit, Stripe, Resend, seed passwords) appear in any of 596 client or server build files.
+  - Safe settings serve with nosniff, frame-deny and no-referrer headers, no `X-Powered-By`, and no debug or test routes. Workers reject requests without their secret.
+  - `next start` refuses to boot with any of: `ALLOW_DEV_SEED=true`, `EMAIL_TRANSPORT=local`, live Stripe without `STRIPE_MODE=live` plus `STRIPE_ALLOW_LIVE=true` (a live key in test mode included), or a non-HTTPS `APP_URL`.
+
+  Before this change, those settings made every page log the guard error but still answer 200 with an error screen. `next.config.ts` now fails the build or start instead, so a bad Vercel deploy fails at deploy time.
+
+  Separately, server-action errors no longer pass raw database or Stripe text to users. `src/lib/user-error.ts` shows validation, application, and raised (`P0001`) messages, and logs anything else server-side behind a generic retry message (unit-tested). All connected suites, `test:forms`, and 81 unit tests passed afterwards.
+
 - **pnpm test:forms passed with 0 findings (October 22, 2026)** at desktop and iPhone 13 sizes on the real signed-in app and the customer review page. It covers axe (WCAG 2.1 AA, serious/critical), page overflow with maximum-length unbroken names, 24px touch targets, 16px field text (iOS focus zoom), new-order Tab order, empty states, server-rejected input, and saves while offline. The sweep found and fixed four defects:
   - A save attempted while offline replaced the page with the error screen and discarded all input. `ActionForm` now catches transport failures, rethrows Next.js navigation errors, and shows a retry message while keeping the entries.
   - Unbroken names widened the order and customer pages by 2,600–4,000px. Long words in `main` now wrap.
@@ -84,7 +93,7 @@ Reserve hours 44–48 for fixes and founder review. The deadline depends on a wo
 - Reports: .local/connected-check.json, .local/ui-workflow-check.json, .local/auth-check.json, .local/email-check.json, .local/cleanup-check.json, .local/customers-check.json, .local/order-controls-check.json, .local/order-directory-check.json, and .local/shop-logo-check.json.
 - PGlite tests remain isolated SQL checks with auth stubs and do not replace the separate real Supabase evidence above. Billing fixtures and SDK signature checks do not verify actual Stripe checkout.
 - /api/ready reports healthy database, Auth, private bucket, and authentication-limit configuration/table access. /api/health reports configuration only. Neither proves provider billing/email or backups.
-- TypeScript, lint, and production compilation passed. Compilation used EMAIL_TRANSPORT=unconfigured; production fixture guards remain enabled.
+- TypeScript, lint, and production compilation passed. A local production build needs `EMAIL_TRANSPORT=unconfigured APP_URL=https://…`, because `next.config.ts` refuses unsafe production settings.
 - The compiled client assets contain none of the configured service-role, worker, or authentication-limit secrets. This exact-value check supplements server-only module boundaries; it does not replace a security review.
 
 ## Remaining release work

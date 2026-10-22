@@ -58,6 +58,6 @@ Unchecked items are unfinished or unverified. Do not treat the running demo as r
 - [x] Shared login/signup/recovery app attempt limits beyond provider limits, with parallel database and browser checks.
 - [ ] Backups configured, binary exports secured, restore rehearsal completed and limitations documented.
 - [ ] Owner-authorized closure maintenance tool implemented and rehearsed.
-- [ ] Production rejects all development-only flags/seeds; no universal credentials or secrets in build artifacts.
+- [x] Production rejects all development-only flags/seeds; no universal credentials or secrets in build artifacts (`pnpm test:production`).
 - [ ] Final typecheck/lint/unit/integration/browser/accessibility/build checks pass with actual services.
 - [ ] Founder explicitly authorizes deployment and production launch. No deployment is authorized by this checklist.

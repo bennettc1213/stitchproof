@@ -30,6 +30,7 @@
     "test:pdf": "node --env-file=.env.local scripts/check-pdf-content.mjs",
     "test:stripe": "node --env-file=.env.local scripts/check-stripe.mjs",
     "test:forms": "node --env-file=.env.local scripts/check-forms.mjs",
+    "test:production": "node --env-file=.env.local scripts/check-production.mjs",
     "email:work": "node --env-file=.env.local scripts/process-outbox.mjs",
     "files:clean": "node --env-file=.env.local scripts/clean-files.mjs"
   },

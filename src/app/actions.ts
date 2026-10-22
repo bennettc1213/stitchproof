@@ -1,5 +1,5 @@
 'use server';
-import { redirect } from 'next/navigation';
+import { redirect, unstable_rethrow } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { randomBytes, createHash } from 'node:crypto';
 import { z } from 'zod';
@@ -13,6 +13,7 @@ import { reviewAccess } from '@/lib/review-access';
 import { authNext } from '@/lib/auth-next';
 import { checkout, billingPortal, refreshBilling } from '@/lib/billing';
 import { enforceAuthLimit } from '@/lib/auth-limits';
+import { userError } from '@/lib/user-error';
 export type ActionState = { error?: string; success?: string; link?: string; revision?: number };
 export async function perform(_previous: ActionState, form: FormData): Promise<ActionState> {
   let destination: string | undefined;
@@ -316,15 +317,13 @@ export async function perform(_previous: ActionState, form: FormData): Promise<A
     }
     revalidatePath('/app', 'layout');
   } catch (error) {
-    if (error instanceof z.ZodError)
-      return { error: error.issues.map((i) => i.message).join(' '), revision: _previous.revision };
+    unstable_rethrow(error);
     return {
       revision: _previous.revision,
-      error:
-        error instanceof Error
-          ? error.message
-          : (error as { message?: string })?.message ||
-            'The change could not be saved. Your input is still here. Please retry.',
+      error: userError(
+        error,
+        'The change could not be saved. Your input is still here. Please retry.',
+      ),
     };
   }
   if (destination) redirect(destination);
@@ -346,9 +345,7 @@ export async function decide(_previous: ActionState, form: FormData): Promise<Ac
     revalidatePath('/review/' + token);
     return { success: 'Your decision has been recorded. Thank you.' };
   } catch (error) {
-    return {
-      error:
-        (error as { message?: string }).message || 'Could not record your decision. Please retry.',
-    };
+    unstable_rethrow(error);
+    return { error: userError(error, 'Could not record your decision. Please retry.') };
   }
 }

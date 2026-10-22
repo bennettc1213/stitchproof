@@ -23,7 +23,7 @@ function provider() {
 }
 async function checked<T>(request: PromiseLike<{ data: T; error: { message: string } | null }>) {
   const { data, error } = await request;
-  if (error) throw new Error(error.message);
+  if (error) throw Object.assign(new Error(error.message), error);
   return data;
 }
 export async function reconcileBilling(customer: string, eventId: string, event?: Stripe.Event) {
@@ -41,7 +41,8 @@ export async function reconcileBilling(customer: string, eventId: string, event?
       lease = data;
       break;
     }
-    if (attempt >= 15 || !error.message.includes('already running')) throw new Error(error.message);
+    if (attempt >= 15 || !error.message.includes('already running'))
+      throw Object.assign(new Error(error.message), error);
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   if (lease.untracked || lease.duplicate) return;
