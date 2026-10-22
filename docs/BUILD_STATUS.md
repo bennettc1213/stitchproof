@@ -50,6 +50,8 @@ Reserve hours 44–48 for fixes and founder review. The deadline depends on a wo
 
 ## Current verification
 
+- **Preview deployment (October 22, 2026), authorized by the founder:** https://stitchproof-five.vercel.app runs `main` with Supabase project "Stitch" (all 13 migrations, private buckets, no seed data). Auth is configured for the deployed URL with Resend SMTP. Stripe stays in test mode with a webhook for the deployed URL. Email uses Resend's shared `onboarding@resend.dev` sender, which delivers only to the founder's own address until a sender domain is verified. `/api/ready` is healthy, security headers including HSTS are present, and unsigned webhooks and unauthorized worker calls are rejected. Supabase `pg_cron` posts to the email worker every minute (verified 200 responses) and to file cleanup hourly. The founder completed signup, email confirmation, onboarding, and order creation on the live site.
+
 - **pnpm test:production passed (October 22, 2026)** against a real production build:
   - None of 9 configured secrets (service role, worker, auth-limit, Stripe, Resend, seed passwords) appear in any of 596 client or server build files.
   - Safe settings serve with nosniff, frame-deny and no-referrer headers, no `X-Powered-By`, and no debug or test routes. Workers reject requests without their secret.

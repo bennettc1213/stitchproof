@@ -30,7 +30,23 @@ Account verification and recovery use Supabase Auth. Locally they are caught by 
 
 Review and invitation forms queue emails only when explicitly selected. Decisions queue owner notifications transactionally; ready orders have a deduplicated pickup-notice action. Opening records and seeds never dispatch. An unconfigured provider leaves messages queued and accurately labeled.
 
-Configure `EMAIL_TRANSPORT=local` for development files, or `resend` with `RESEND_API_KEY` and a verified plain sender address in `EMAIL_FROM`. `local` requires loopback Supabase and is rejected in production. Set a random server-only `OUTBOX_WORKER_SECRET` of at least 32 characters. `pnpm email:work` invokes one batch using `.env.local`. Production scheduling must POST `/api/internal/outbox` every minute with `Authorization: Bearer <secret>`; GET or an invalid/missing secret cannot invoke the worker. Configure this in the hosting scheduler; no scheduler is provisioned automatically.
+Configure `EMAIL_TRANSPORT=local` for development files, or `resend` with `RESEND_API_KEY` and a verified plain sender address in `EMAIL_FROM`. `local` requires loopback Supabase and is rejected in production. Set a random server-only `OUTBOX_WORKER_SECRET` of at least 32 characters. `pnpm email:work` invokes one batch using `.env.local`. Production scheduling must POST `/api/internal/outbox` every minute with `Authorization: Bearer <secret>`; GET or an invalid/missing secret cannot invoke the worker. The preview deployment schedules this from Supabase with `pg_cron` and `pg_net` (set up October 22, 2026), because Vercel Hobby cron runs only daily. The worker secret is stored in Supabase Vault as `stitchproof_worker_secret` and must equal Vercel's `OUTBOX_WORKER_SECRET`. If you rotate one, rotate both. The jobs are:
+
+```sql
+-- every minute: email outbox; hourly at :17: abandoned-upload cleanup; daily: trim cron logs
+select cron.schedule('stitchproof-outbox', '* * * * *', $cron$
+  select net.http_post(
+    url := 'https://stitchproof-five.vercel.app/api/internal/outbox',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization',
+      'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'stitchproof_worker_secret')),
+    body := '{}'::jsonb, timeout_milliseconds := 55000)
+$cron$);
+-- 'stitchproof-file-cleanup' at '17 * * * *' posts to /api/internal/files the same way.
+select cron.schedule('stitchproof-cron-log-trim', '41 3 * * *',
+  $$ delete from cron.job_run_details where end_time < now() - interval '7 days' $$);
+```
+
+Check runs with `select * from cron.job_run_details order by start_time desc limit 5` and responses with `select status_code, content from net._http_response order by created desc limit 5`.
 
 The worker claims up to five rows with `FOR UPDATE SKIP LOCKED`, individual lease tokens, and two-minute leases. It sends synchronously within the job request and finalizes results durably. Expired leases can be reclaimed after a crash. Resend calls use an eight-second timeout and a stable per-job idempotency key. Failed attempts back off 1, 2, 4, 8, then 16 minutes, stopping after six attempts; processing/retries also stop 23 hours after the first attempt, within Resend's documented 24-hour idempotency window. Do not manually reset attempt timestamps or IDs to retry uncertain provider acceptance after this window. Review the provider record and create a deliberate new request if needed. Owners can inspect the last 30 safe status records and request eligible retries under Shop profile.
 
@@ -62,7 +78,7 @@ The private `order-files` bucket has no public read/write policies. Protected do
 
 Uploads reserve quota before Storage writes, finalize their digest, and release known failures once. Server-only Supabase calls have a 30-second timeout. Reservations older than one hour cannot finalize; the maintenance worker retires them and releases quota atomically before object deletion. It leases at most 20 abandoned, unreferenced paths for two minutes, removes their bytes idempotently, and finalizes cleanup state. Ready files and all sent-proof references are excluded. Cleaned tombstones are rechecked daily for late-arriving orphan bytes. No routine cleanup deletes ready draft files because those may still be intentionally in use.
 
-Run `pnpm files:clean` locally. In production, schedule hourly POST requests to `/api/internal/files` with the same server-only worker bearer secret. Failed deletion leaves the tombstone retryable; an interrupted job's lease expires. No scheduler has been provisioned. `pnpm test:files` passed against real Storage with parallel cleanup, expired/failed reservations, one-time quota release, late-orphan rechecks, immutable sent-file preservation, and competing reservations across different orders. Add provider/network failure rehearsal to production operational acceptance.
+Run `pnpm files:clean` locally. In production, schedule hourly POST requests to `/api/internal/files` with the same server-only worker bearer secret. The preview deployment does this with Supabase `pg_cron` (see the email section). Failed deletion leaves the tombstone retryable; an interrupted job's lease expires. `pnpm test:files` passed against real Storage with parallel cleanup, expired/failed reservations, one-time quota release, late-orphan rechecks, immutable sent-file preservation, and competing reservations across different orders. Add provider/network failure rehearsal to production operational acceptance.
 
 Shop logos use a separate private `shop-logos` bucket (PNG only, 1 MiB per object, no public or authenticated storage policies). The server sniffs content, requires matching type and extension, rejects SVG/PDF, decodes with a pixel limit, strips metadata, fits the image within 1024 pixels, and re-encodes it to PNG before upload. Only the owner of a writable shop can set or remove a logo. Logos do not count against the 2 GiB order-file allowance. `/api/logo` serves the current logo to signed-in members, or to the holder of an active, unexpired review link through the same review rate limit, with ETag revalidation. Each replacement or removal deletes exactly the object it displaced; a failed save deletes its staged object; a best-effort sweep on the next change removes leftovers older than one hour. Include `shop-logos` in binary backup inventories. `pnpm test:logo` verifies this against real Storage.
 
